@@ -1,4 +1,5 @@
 #include "OsuMenuLayer.h"
+
 CCSprite* bg;
 CCPoint bgStartPos;
 CCSprite* logo;
@@ -8,7 +9,6 @@ void OsuMenuLayer::keyBackClicked()
 }
 bool OsuMenuLayer::init() 
 {
-
 	auto shDir = CCDirector::sharedDirector();
 	auto size = shDir->getWinSize();
 
@@ -22,8 +22,7 @@ bool OsuMenuLayer::init()
 	blur->link();
 	blur->updateUniforms();
 	blur->setUniformLocationWith1f(blur->getUniformLocationForName("blurRadius"), 0.5f);
-	
-	
+
 	bg = CCSprite::create("game_bg_20_001-uhd.png");
 	
 	bg->setScaleX(size.width / bg->getContentSize().width + 0.2f);
@@ -141,6 +140,8 @@ bool OsuMenuLayer::init()
 }
 void OsuMenuLayer::update(float delta) 
 {
+	auto a = CCEGLView::sharedOpenGLView();
+	std::cout << "x: " << a->m_fMouseX << "y:" << a->m_fMouseY << '\n';
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {
