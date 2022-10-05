@@ -80,6 +80,7 @@ bool OsuMenuLayer::init()
 	blackBG->setColor({ 0, 0, 0 });
 	addChild(blackBG);
 
+	
 
 	if (!openedBefore) 
 	{
