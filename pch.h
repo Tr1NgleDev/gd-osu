@@ -9,7 +9,7 @@ using namespace cocos2d;
 
 #define CONSOLE
 
-#define lerp(a, b, ratio) (a * (1.f - ratio) + b * ratio)
+#define lerpF(a, b, ratio) (a * (1.f - ratio) + b * ratio)
 #define scrCenter(a, b) { a.width / 2.0f - b.width / 2.0f, a.height / 2.0f - b.height / 2.0f }
 #define scrCenterA(a) { a.width / 2.0f, a.height / 2.0f }
 

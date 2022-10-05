@@ -2,7 +2,23 @@
 
 CCSprite* bg;
 CCPoint bgStartPos;
+
 CCSprite* logo;
+CCSprite* logoT;
+CCPoint logoStartPos;
+
+CCSize size;
+CCEGLView* view;
+
+CCPoint getMousePosition()
+{
+	return { view->m_fMouseX,view->m_fMouseY };
+}
+CCPoint getMousePositionC()
+{
+	return (getMousePosition() - view->getFrameSize() / 2.f) * 2.f;
+}
+
 void OsuMenuLayer::keyBackClicked() 
 {
 	//syaNextTime();
@@ -10,7 +26,8 @@ void OsuMenuLayer::keyBackClicked()
 bool OsuMenuLayer::init() 
 {
 	auto shDir = CCDirector::sharedDirector();
-	auto size = shDir->getWinSize();
+	size = shDir->getWinSize();
+	view = shDir->getOpenGLView();
 
 	auto soundManager = gd::GameSoundManager::sharedState();
 
@@ -29,6 +46,8 @@ bool OsuMenuLayer::init()
 	bg->setScaleY(size.height / bg->getContentSize().height + 0.2f);
 	bg->setZOrder(-10);
 	bg->setAnchorPoint({ 0, 0 });
+	bg->setPositionX(bg->getPositionX() - 20);
+	bg->setPositionY(bg->getPositionY() - 20);
 	bgStartPos = bg->getPosition();
 	bg->setShaderProgram(blur);
 	addChild(bg);
@@ -57,7 +76,7 @@ bool OsuMenuLayer::init()
 	shittyLines->setOpacity(125);
 	addChild(shittyLines);
 
-	CCSprite* logoT = CCSprite::create("osuMenu/gdlogo.png");
+	logoT = CCSprite::create("osuMenu/gdlogo.png");
 	logoT->setZOrder(10);
 	logoT->setScale(0.975f);
 	logoT->setOpacity(40);
@@ -68,6 +87,7 @@ bool OsuMenuLayer::init()
 	logo->setZOrder(9);
 	logo->setPosition(scrCenterA(size));
 	logo->setScale(0.95f);
+	logoStartPos = logo->getPosition();
 	addChild(logo);
 
 	CCSprite* blackBG = CCSprite::create("square.png");
@@ -140,8 +160,13 @@ bool OsuMenuLayer::init()
 }
 void OsuMenuLayer::update(float delta) 
 {
-	auto a = CCEGLView::sharedOpenGLView();
-	std::cout << "x: " << a->m_fMouseX << "y:" << a->m_fMouseY << '\n';
+	bg->setPositionX(lerpF(bg->getPosition().x, (bgStartPos.x - getMousePositionC().x / size.width), 5.5f * delta));
+	bg->setPositionY(lerpF(bg->getPosition().y, (bgStartPos.y + getMousePositionC().y / size.height), 5.5f * delta));
+
+	logo->setPositionX(lerpF(logo->getPosition().x, (logoStartPos.x - getMousePositionC().x / size.width), 7.f * delta));
+	logo->setPositionY(lerpF(logo->getPosition().y, (logoStartPos.y + getMousePositionC().y / size.height), 7.f * delta));
+
+	logoT->setPosition(logoT->getPosition().lerp(logo->getPosition(), 6.f * delta));
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {
