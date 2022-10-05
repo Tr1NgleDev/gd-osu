@@ -1,5 +1,8 @@
 #include "OsuMenuLayer.h"
 
+#define circlesBPM 184.0f
+#define crotchet 60.f / circlesBPM
+
 CCSprite* bg;
 CCPoint bgStartPos;
 
@@ -9,6 +12,8 @@ CCPoint logoStartPos;
 
 CCSize size;
 CCEGLView* view;
+
+float logoScale;
 
 CCPoint getMousePosition()
 {
@@ -30,7 +35,9 @@ bool OsuMenuLayer::init()
 	view = shDir->getOpenGLView();
 
 	auto soundManager = gd::GameSoundManager::sharedState();
-
+	soundManager->stopBackgroundMusic();
+	
+	
 	CCGLProgram* blur = new CCGLProgram();
 	blur->initWithVertexShaderFilename("osuMenu/vertex.vsh", "osuMenu/blur.fsh");
 	blur->addAttribute("a_position", 0);
@@ -87,6 +94,7 @@ bool OsuMenuLayer::init()
 	logo->setZOrder(9);
 	logo->setPosition(scrCenterA(size));
 	logo->setScale(0.95f);
+	logoScale = logo->getScale();
 	logoStartPos = logo->getPosition();
 	addChild(logo);
 
@@ -102,8 +110,7 @@ bool OsuMenuLayer::init()
 	
 
 	if (!openedBefore) 
-	{
-		soundManager->stopBackgroundMusic();
+	{	
 		soundManager->playSound("osuMenu/welcome.ogg");
 		CCSprite* welcome = CCSprite::create("osuMenu/welcome_text.png");
 		welcome->setZOrder(51);
@@ -158,8 +165,41 @@ bool OsuMenuLayer::init()
 
 	return true;
 }
+float timer = 0;
+void OsuMenuLayer::beatHit()
+{
+	logo->setScale(logoScale + 0.075f);
+}
+void OsuMenuLayer::stepHit()
+{
+	if (curStep % 4 == 0)
+		beatHit();
+}
+void OsuMenuLayer::beatUpdate()
+{
+	curBeat = (int)floor((float)curStep / 4.f);
+}
+void OsuMenuLayer::stepUpdate()
+{
+	curStep = (int)floor(songPos / (crotchet / 4.f));
+}
 void OsuMenuLayer::update(float delta) 
 {
+	if (!playing)
+		timer += delta;
+	else
+		timer = 0.0;
+
+	if (timer > 1.0) 
+	{
+		gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "osuMenu/circles.ogg");
+		
+		playing = true;
+	}
+
+	if (playing)
+		songPos += delta;
+		
 	bg->setPositionX(lerpF(bg->getPosition().x, (bgStartPos.x - getMousePositionC().x / size.width), 5.5f * delta));
 	bg->setPositionY(lerpF(bg->getPosition().y, (bgStartPos.y + getMousePositionC().y / size.height), 5.5f * delta));
 
@@ -167,6 +207,14 @@ void OsuMenuLayer::update(float delta)
 	logo->setPositionY(lerpF(logo->getPosition().y, (logoStartPos.y + getMousePositionC().y / size.height), 7.f * delta));
 
 	logoT->setPosition(logoT->getPosition().lerp(logo->getPosition(), 6.f * delta));
+
+	logo->setScale(lerpF(logo->getScale(), logoScale, 8.f * delta));
+
+	int oldStep = curStep;
+	stepUpdate();
+	beatUpdate();
+	if (oldStep != curStep && curStep > 0)
+		stepHit();
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {

@@ -8,6 +8,15 @@ protected:
 public:
 	static bool openedBefore;
 	void update(float) override;
+	void beatUpdate();
+	void stepUpdate();
+	void stepHit();
+	void beatHit();
 	static OsuMenuLayer* _fastcall create();
+
+	bool playing = false;
+	float songPos = 0.f;
+	int curStep;
+	int curBeat;
 };
 
