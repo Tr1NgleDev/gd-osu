@@ -10,10 +10,16 @@ CCSprite* logo;
 CCSprite* logoT;
 CCPoint logoStartPos;
 
+CCSprite* shittyLines;
+CCSprite* ppy;
+CCSprite* tr1ngle;
+
 CCSize size;
 CCEGLView* view;
 
 float logoScale;
+
+CCPoint oldMousePos;
 
 CCPoint getMousePosition()
 {
@@ -60,14 +66,14 @@ bool OsuMenuLayer::init()
 	addChild(bg);
 
 
-	CCSprite* ppy = CCSprite::create("osuMenu/ppy.png");
+	ppy = CCSprite::create("osuMenu/ppy.png");
 	ppy->setZOrder(100);
 	ppy->setAnchorPoint({ 0, 0 });
 	ppy->setScale(1.1f);
 
 	addChild(ppy);
 
-	CCSprite* tr1ngle = CCSprite::create("osuMenu/tr1ngle.png");
+	tr1ngle = CCSprite::create("osuMenu/tr1ngle.png");
 	tr1ngle->setZOrder(101);
 	tr1ngle->setAnchorPoint({ 0, 0 });
 	tr1ngle->setScale(1.1f);
@@ -75,7 +81,7 @@ bool OsuMenuLayer::init()
 
 	addChild(tr1ngle);
 
-	CCSprite* shittyLines = CCSprite::create("osuMenu/linesL.png");
+	shittyLines = CCSprite::create("osuMenu/linesL.png");
 	shittyLines->setScaleX(size.width / shittyLines->getContentSize().width);
 	shittyLines->setScaleY(size.height / shittyLines->getContentSize().height);
 	shittyLines->setZOrder(99);
@@ -166,6 +172,8 @@ bool OsuMenuLayer::init()
 	return true;
 }
 float timer = 0;
+float timer2 = 0;
+int alphaA = 255;
 void OsuMenuLayer::beatHit()
 {
 	logo->setScale(logoScale + 0.075f);
@@ -190,7 +198,7 @@ void OsuMenuLayer::update(float delta)
 	else
 		timer = 0.0;
 
-	if (timer > 1.0) 
+	if (timer > 0.7f) 
 	{
 		gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "osuMenu/circles.ogg");
 		
@@ -215,6 +223,26 @@ void OsuMenuLayer::update(float delta)
 	beatUpdate();
 	if (oldStep != curStep && curStep > 0)
 		stepHit();
+
+	if (oldMousePos.x == getMousePositionC().x && oldMousePos.y == getMousePositionC().y)
+		timer2 += delta;
+	else
+		timer2 = 0;
+
+	if (timer2 > 6.f)
+	{
+		alphaA = (int)clampf(lerpF((float)alphaA, 0.0f, 0.001f * delta), 0, 255);
+	}
+	else
+		alphaA = (int)clampf(lerpF((float)alphaA, 255.0f, 7.0f * delta), 0, 255);
+
+	shittyLines->setOpacity((int)((float)alphaA / 2.0f));
+	ppy->setOpacity(alphaA);
+	tr1ngle->setOpacity(alphaA);
+
+	std::cout << alphaA << " | " << timer2 << "\n";
+
+	oldMousePos = getMousePositionC();
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {
