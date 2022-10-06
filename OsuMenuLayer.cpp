@@ -17,7 +17,7 @@ CCSprite* tr1ngle;
 CCSize size;
 CCEGLView* view;
 
-float logoScale;
+float logoScale = 0.95f;
 
 CCPoint oldMousePos;
 
@@ -91,7 +91,7 @@ bool OsuMenuLayer::init()
 
 	logoT = CCSprite::create("osuMenu/gdlogo.png");
 	logoT->setZOrder(10);
-	logoT->setScale(0.975f);
+	logoT->setScale(logoScale + 0.025f);
 	logoT->setOpacity(40);
 	logoT->setPosition(scrCenterA(size));
 	addChild(logoT);
@@ -99,8 +99,7 @@ bool OsuMenuLayer::init()
 	logo = CCSprite::create("osuMenu/gdlogo.png");
 	logo->setZOrder(9);
 	logo->setPosition(scrCenterA(size));
-	logo->setScale(0.95f);
-	logoScale = logo->getScale();
+	logo->setScale(logoScale);
 	logoStartPos = logo->getPosition();
 	addChild(logo);
 
@@ -239,6 +238,14 @@ void OsuMenuLayer::update(float delta)
 	shittyLines->setOpacity((int)((float)alphaA / 2.0f));
 	ppy->setOpacity(alphaA);
 	tr1ngle->setOpacity(alphaA);
+
+	if (CCRect(-640, -640, 640 * 2, 640 * 2).containsPoint(getMousePositionC())) // touch logo
+	{
+		logoScale = 1.025f;
+	}
+	else
+		logoScale = 0.95f;
+		
 
 	oldMousePos = getMousePositionC();
 }
