@@ -12,6 +12,7 @@ public:
 	void stepUpdate();
 	void stepHit();
 	void beatHit();
+	void syaNextTime();
 	static OsuMenuLayer* _fastcall create();
 
 	bool playing = false;
@@ -30,6 +31,8 @@ public:
 	CCSprite* ppy;
 	CCSprite* tr1ngle;
 
+	CCSprite* blackBG;
+
 	float timer = 0;
 	float timer2 = 0;
 	int alphaA = 255;
@@ -40,5 +43,8 @@ public:
 
 	CCGLProgram* flashGradient;
 	CCGLProgram* blur;
+
+	bool closingGame;
+	float closeTimer;
 };
 

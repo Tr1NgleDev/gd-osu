@@ -18,10 +18,13 @@ CCPoint getMousePositionC()
 {
 	return (getMousePosition() - view->getFrameSize() / 2.f) * 2.f;
 }
-
+void OsuMenuLayer::syaNextTime() 
+{
+	closingGame = true;
+}
 void OsuMenuLayer::keyBackClicked() 
 {
-	//syaNextTime();
+	syaNextTime();
 }
 bool OsuMenuLayer::init() 
 {
@@ -118,7 +121,7 @@ bool OsuMenuLayer::init()
 	logoStartPos = logo->getPosition();
 	addChild(logo);
 
-	CCSprite* blackBG = CCSprite::create("square.png");
+	blackBG = CCSprite::create("square.png");
 	auto bgSz = blackBG->getContentSize();
 	blackBG->setScaleX(size.width / bgSz.width);
 	blackBG->setScaleY(size.height / bgSz.height);
@@ -217,6 +220,7 @@ void OsuMenuLayer::stepUpdate()
 {
 	curStep = (int)floor(songPos / (crotchet / 4.f));
 }
+bool playingSeeyaNextTime;
 void OsuMenuLayer::update(float delta) 
 {
 	flashGradient->use();
@@ -270,18 +274,54 @@ void OsuMenuLayer::update(float delta)
 	ppy->setOpacity(alphaA);
 	tr1ngle->setOpacity(alphaA);
 
-	if (CCRect(-640, -640, 640 * 2, 640 * 2).containsPoint(getMousePositionC())) // touch logo
+	if (!closingGame) 
 	{
-		logoScale = 1.025f;
+		if (CCRect(-640, -640, 640 * 2, 640 * 2).containsPoint(getMousePositionC())) // touch logo
+		{
+			logoScale = 1.025f;
+		}
+		else
+			logoScale = 0.95f;
 	}
-	else
-		logoScale = 0.95f;
+	
 		
 
 	oldMousePos = getMousePositionC();
 
 	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("leftValue"), flash_leftValue);
 	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("rightValue"), flash_rightValue);
+
+
+	if (closingGame) 
+	{
+		if (!playingSeeyaNextTime) 
+		{
+			gd::GameSoundManager::playSound("osuMenu/seeya.ogg");
+			playingSeeyaNextTime = true;
+			blackBG->stopAllActions();
+			blackBG->runAction(CCSequence::create(
+				CCSpawn::create(
+					CCEaseInOut::create(
+						CCFadeTo::create(3, 255), 4.
+					),
+					nullptr
+				),
+				nullptr
+			));
+		}
+			
+		closeTimer += delta;
+		
+		logoScale = lerpF(logoScale, 0.2f, delta / 4.f);
+		logoT->setScale(lerpF(logoT->getScale(), 0.3f, delta / 4.f));
+
+		logo->setRotation(lerpF(logo->getRotation(), 10.f, delta / 4.f));
+		logoT->setRotation(lerpF(logoT->getRotation(), 10.f, delta / 4.f));
+		
+
+		if (closeTimer > 3.1f) 
+			exit(0);
+	}
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {
