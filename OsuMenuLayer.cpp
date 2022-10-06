@@ -240,8 +240,6 @@ void OsuMenuLayer::update(float delta)
 	ppy->setOpacity(alphaA);
 	tr1ngle->setOpacity(alphaA);
 
-	std::cout << alphaA << " | " << timer2 << "\n";
-
 	oldMousePos = getMousePositionC();
 }
 OsuMenuLayer* OsuMenuLayer::create() 
