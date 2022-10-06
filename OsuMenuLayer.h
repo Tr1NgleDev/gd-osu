@@ -18,5 +18,27 @@ public:
 	float songPos = 0.f;
 	int curStep;
 	int curBeat;
+
+	CCSprite* bg;
+	CCPoint bgStartPos;
+
+	CCSprite* logo;
+	CCSprite* logoT;
+	CCPoint logoStartPos;
+
+	CCSprite* shittyLines;
+	CCSprite* ppy;
+	CCSprite* tr1ngle;
+
+	float timer = 0;
+	float timer2 = 0;
+	int alphaA = 255;
+	bool flashSkullEmoji;
+
+	float flash_leftValue;
+	float flash_rightValue;
+
+	CCGLProgram* flashGradient;
+	CCGLProgram* blur;
 };
 

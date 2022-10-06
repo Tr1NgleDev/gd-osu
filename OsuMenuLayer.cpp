@@ -3,23 +3,12 @@
 #define circlesBPM 184.0f
 #define crotchet 60.f / circlesBPM
 
-CCSprite* bg;
-CCPoint bgStartPos;
-
-CCSprite* logo;
-CCSprite* logoT;
-CCPoint logoStartPos;
-
-CCSprite* shittyLines;
-CCSprite* ppy;
-CCSprite* tr1ngle;
-
-CCSize size;
-CCEGLView* view;
-
 float logoScale = 0.95f;
 
 CCPoint oldMousePos;
+
+CCSize size;
+CCEGLView* view;
 
 CCPoint getMousePosition()
 {
@@ -41,10 +30,17 @@ bool OsuMenuLayer::init()
 	view = shDir->getOpenGLView();
 
 	auto soundManager = gd::GameSoundManager::sharedState();
-	soundManager->stopBackgroundMusic();
+
 	
-	
-	CCGLProgram* blur = new CCGLProgram();
+	if (gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying() && openedBefore)
+	{
+		soundManager->stopBackgroundMusic();
+		soundManager->playBackgroundMusic(true, "osuMenu/circles.ogg");
+		playing = true;
+	}
+	if(!openedBefore)
+		soundManager->stopBackgroundMusic();
+	blur = new CCGLProgram();
 	blur->initWithVertexShaderFilename("osuMenu/vertex.vsh", "osuMenu/blur.fsh");
 	blur->addAttribute("a_position", 0);
 	blur->addAttribute("a_color", 1u);
@@ -52,6 +48,16 @@ bool OsuMenuLayer::init()
 	blur->link();
 	blur->updateUniforms();
 	blur->setUniformLocationWith1f(blur->getUniformLocationForName("blurRadius"), 0.5f);
+
+	flashGradient = new CCGLProgram();
+	flashGradient->initWithVertexShaderFilename("osuMenu/vertex.vsh", "osuMenu/flash.fsh");
+	flashGradient->addAttribute("a_position", 0);
+	flashGradient->addAttribute("a_color", 1u);
+	flashGradient->addAttribute("a_texCoord", 2u);
+	flashGradient->link();
+	flashGradient->updateUniforms();
+
+	
 
 	bg = CCSprite::create("game_bg_20_001-uhd.png");
 	
@@ -63,7 +69,16 @@ bool OsuMenuLayer::init()
 	bg->setPositionY(bg->getPositionY() - 20);
 	bgStartPos = bg->getPosition();
 	bg->setShaderProgram(blur);
+	
 	addChild(bg);
+
+	CCSprite* flash = CCSprite::create("square.png");
+	flash->setScaleX(size.width / flash->getContentSize().width);
+	flash->setScaleY(size.height / flash->getContentSize().height);
+	flash->setZOrder(20);
+	flash->setAnchorPoint({ 0, 0 });
+	flash->setShaderProgram(flashGradient);
+	addChild(flash);
 
 
 	ppy = CCSprite::create("osuMenu/ppy.png");
@@ -170,12 +185,24 @@ bool OsuMenuLayer::init()
 
 	return true;
 }
-float timer = 0;
-float timer2 = 0;
-int alphaA = 255;
+
 void OsuMenuLayer::beatHit()
 {
 	logo->setScale(logoScale + 0.075f);
+
+	if (curBeat == 40 - 3)
+	{
+		flash_leftValue = 0.5f;
+		flash_rightValue = 0.5f;
+	}
+	if (curBeat >= 44 - 3 && curBeat != 75 - 3 && curBeat != 76 - 3)
+	{
+		flashSkullEmoji = !flashSkullEmoji;
+		if (flashSkullEmoji)
+			flash_leftValue = 0.7f;
+		else
+			flash_rightValue = 0.7f;
+	}
 }
 void OsuMenuLayer::stepHit()
 {
@@ -192,11 +219,12 @@ void OsuMenuLayer::stepUpdate()
 }
 void OsuMenuLayer::update(float delta) 
 {
+	flashGradient->use();
 	if (!playing)
 		timer += delta;
 	else
 		timer = 0.0;
-
+	if(!gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying())
 	if (timer > 0.7f) 
 	{
 		gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "osuMenu/circles.ogg");
@@ -216,6 +244,9 @@ void OsuMenuLayer::update(float delta)
 	logoT->setPosition(logoT->getPosition().lerp(logo->getPosition(), 6.f * delta));
 
 	logo->setScale(lerpF(logo->getScale(), logoScale, 8.f * delta));
+
+	flash_leftValue = lerpF(flash_leftValue, 0.0f, 2.f * delta);
+	flash_rightValue = lerpF(flash_rightValue, 0.0f, 2.f * delta);
 
 	int oldStep = curStep;
 	stepUpdate();
@@ -248,6 +279,9 @@ void OsuMenuLayer::update(float delta)
 		
 
 	oldMousePos = getMousePositionC();
+
+	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("leftValue"), flash_leftValue);
+	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("rightValue"), flash_rightValue);
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {
