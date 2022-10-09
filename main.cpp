@@ -10,7 +10,7 @@ DWORD WINAPI Main_Thread(void* hModule)
 	{
 		FreeLibraryAndExitThread(reinterpret_cast<HMODULE>(hModule), 0);
 	}
-#ifdef CONSOLE
+#ifdef DEBUG
 	AllocConsole();
 	FILE* fp;
 	freopen_s(&fp, "CONOUT$", "w", stdout);

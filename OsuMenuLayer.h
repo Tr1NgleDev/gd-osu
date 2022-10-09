@@ -1,11 +1,13 @@
 #pragma once
 #include "pch.h"
+
 class OsuMenuLayer : public cocos2d::CCLayer
 {
 protected:
 	virtual bool init() override;
 	virtual void keyBackClicked();
 public:
+	void createMainMenuButtons();
 	static bool openedBefore;
 	void update(float) override;
 	void beatUpdate();
@@ -16,9 +18,6 @@ public:
 	static OsuMenuLayer* _fastcall create();
 
 	bool playing = false;
-	float songPos = 0.f;
-	int curStep;
-	int curBeat;
 
 	CCSprite* bg;
 	CCPoint bgStartPos;
@@ -26,9 +25,13 @@ public:
 	CCSprite* logo;
 	CCSprite* logoT;
 	CCPoint logoStartPos;
+	float logoScale = 0.95f;
+	CCPoint logoPos;
 
 	CCSprite* shittyLines;
+
 	CCSprite* ppy;
+
 	CCSprite* tr1ngle;
 
 	CCSprite* blackBG;
@@ -46,5 +49,25 @@ public:
 
 	bool closingGame;
 	float closeTimer;
+
+	bool inMainMenu;
+	bool inPlayMenu;
+
+
+	// main menu buttons
+	CCSprite* playBtnN;
+	CCSprite* playBtnO;
+
+	CCSprite* iconsBtnN;
+	CCSprite* iconsBtnO;
+
+	CCSprite* creditsBtnN;
+	CCSprite* creditsBtnO;
+
+	CCSprite* optionsBtnN;
+	CCSprite* optionsBtnO;
+	
+	CCSprite* exitBtnN;
+	CCSprite* exitBtnO;
 };
 
