@@ -20,7 +20,7 @@ int curBeat;
 
 CCPoint oldMousePos;
 
-
+gd::OptionsLayer* optionsLayer;
 
 bool touchAAA;
 bool prevTouchAAA;
@@ -51,7 +51,8 @@ void OsuMenuLayer::syaNextTime()
 }
 void OsuMenuLayer::keyBackClicked() 
 {
-	syaNextTime();
+	if ((optionsLayer == NULL) || (optionsLayer != NULL && !CCDirector::sharedDirector()->getRunningScene()->getChildren()->containsObject(optionsLayer)))
+		syaNextTime();
 }
 void OsuMenuLayer::createMainMenuButtons() 
 {
@@ -331,6 +332,8 @@ void OsuMenuLayer::update(float delta)
 	touchAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0);
 	if (blackBG->getOpacity() >= 200)
 		touchAAA = false;
+	if (optionsLayer != NULL && CCDirector::sharedDirector()->getRunningScene()->getChildren()->containsObject(optionsLayer))
+		touchAAA = false;
 	flashGradient->use();
 	if (!playing)
 		timer += delta;
@@ -518,7 +521,7 @@ void OsuMenuLayer::update(float delta)
 			if (touchAAA && !prevTouchAAA) // pressed
 			{
 				// do action L
-				
+				optionsLayer = gd::OptionsLayer::addToCurrentScene();
 			}
 		}
 			
