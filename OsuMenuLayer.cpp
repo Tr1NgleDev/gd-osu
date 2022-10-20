@@ -3,10 +3,13 @@
 	im not using CCMenu-s because its shit
 	so im just making it "hard-coded" way
 
+	also code is so shitty but i dont really care because it works.
+	L
 */
 
 #include "OsuMenuLayer.h"
-#include <Windows.h>
+#include "CreditsLayer.h"
+#include "Mouse.h"
 
 #define circlesBPM 184.0f
 #define crotchet 60.f / circlesBPM
@@ -17,34 +20,33 @@ int curBeat;
 
 CCPoint oldMousePos;
 
-CCSize size;
-CCEGLView* view;
+
 
 bool touchAAA;
 bool prevTouchAAA;
 
-CCPoint getMousePosition()
+bool AABBCircleL(CCPoint c, float radius, CCPoint rp, CCPoint rs) 
 {
-	return { view->m_fMouseX,view->m_fMouseY };
+	float tmpX = c.x;
+	float tmpY = c.y;
+
+	if (c.x < rp.x)         tmpX = rp.x;
+	else if (c.x > rp.x + rs.x) tmpX = rp.x + rs.x;
+	if (c.y < rp.y)         tmpY = rp.y;
+	else if (c.y > rp.y + rs.y) tmpY = rp.y + rs.y;
+
+	float dX = c.x - tmpX;
+	float dY = c.y - tmpY;
+	float d = sqrt((dX * dX) + (dY * dY));
+
+	return d <= radius;
 }
-CCPoint getMousePositionC()
-{
-	return (getMousePosition() - view->getFrameSize() / 2.f) * 2.f;
-}
-CCPoint getMousePositionF()
-{
-	return { getMousePosition().x / view->getFrameSize().width, getMousePosition().y / view->getFrameSize().height };
-}
-CCPoint getMousePositionCF()
-{
-	return { getMousePositionC().x / view->getFrameSize().width, getMousePositionC().y / view->getFrameSize().height };
-}
-CCPoint getMousePositionInS() 
-{
-	return { getMousePositionF().x * size.width, (1.f - getMousePositionF().y) * size.height };
-}
+
 void OsuMenuLayer::syaNextTime() 
 {
+	inMainMenu = false;
+	inPlayMenu = false;
+	logoPos = logoStartPos;
 	closingGame = true;
 }
 void OsuMenuLayer::keyBackClicked() 
@@ -100,11 +102,11 @@ void OsuMenuLayer::createMainMenuButtons()
 	optionsBtnO->setOpacity(0);
 	exitBtnO->setOpacity(0);
 
-	playBtnN->setPosition({ size.width / 2, size.height / 2 });
-	iconsBtnN->setPosition({ size.width / 2, size.height / 2 });
-	creditsBtnN->setPosition({ size.width / 2, size.height / 2 });
-	optionsBtnN->setPosition({ size.width / 2, size.height / 2 });
-	exitBtnN->setPosition({ size.width / 2, size.height / 2 });
+	playBtnN->setPosition({ size.width / 2.75f - 30, size.height / 2 + playBtnN->getContentSize().height * 2.f });
+	iconsBtnN->setPosition({ size.width / 2.75f - 15, size.height / 2 + iconsBtnN->getContentSize().height });
+	creditsBtnN->setPosition({ size.width / 2.75f - 7.5f, size.height / 2 });
+	optionsBtnN->setPosition({ size.width / 2.75f - 15, size.height / 2 - optionsBtnN->getContentSize().height });
+	exitBtnN->setPosition({ size.width / 2.75f - 30, size.height / 2 - exitBtnN->getContentSize().height * 2.f });
 }
 bool OsuMenuLayer::init() 
 {
@@ -132,7 +134,8 @@ bool OsuMenuLayer::init()
 	blur->addAttribute("a_texCoord", 2u);
 	blur->link();
 	blur->updateUniforms();
-	blur->setUniformLocationWith1f(blur->getUniformLocationForName("blurRadius"), 0.5f);
+	blur->setUniformLocationWith1f(blur->getUniformLocationForName("blurRadius"), 0.25f);
+	CCShaderCache::sharedShaderCache()->addProgram(blur, "blur_sh");
 
 	flashGradient = new CCGLProgram();
 	flashGradient->initWithVertexShaderFilename("osuMenu/shaders/vertex.vsh", "osuMenu/shaders/flash.fsh");
@@ -141,6 +144,7 @@ bool OsuMenuLayer::init()
 	flashGradient->addAttribute("a_texCoord", 2u);
 	flashGradient->link();
 	flashGradient->updateUniforms();
+	CCShaderCache::sharedShaderCache()->addProgram(flashGradient, "flashGradient_sh");
 
 	bg = CCSprite::create("game_bg_20_001-uhd.png");
 	
@@ -198,9 +202,9 @@ bool OsuMenuLayer::init()
 	logo->setZOrder(9);
 	logo->setPosition(scrCenterA(size));
 	logo->setScale(logoScale);
-	logoStartPos = logo->getPosition();
-	addChild(logo);
 	logoPos = logo->getPosition();
+	logoStartPos = logoPos;
+	addChild(logo);
 
 	blackBG = CCSprite::create("square.png");
 	auto bgSz = blackBG->getContentSize();
@@ -270,7 +274,7 @@ bool OsuMenuLayer::init()
 	scheduleUpdate();
 
 	openedBefore = true;
-
+	CCTexture2D::setDefaultAlphaPixelFormat(kTexture2DPixelFormat_RGBA4444); // return to gd rgba4444
 	return true;
 }
 
@@ -306,6 +310,7 @@ void OsuMenuLayer::stepUpdate()
 	curStep = (int)floor(songPos / (crotchet / 4.f));
 }
 bool playingSeeyaNextTime;
+
 void OsuMenuLayer::update(float delta) 
 {
 	playBtnO->setPosition(playBtnN->getPosition());
@@ -324,7 +329,8 @@ void OsuMenuLayer::update(float delta)
 	}
 
 	touchAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0);
-
+	if (blackBG->getOpacity() >= 200)
+		touchAAA = false;
 	flashGradient->use();
 	if (!playing)
 		timer += delta;
@@ -341,12 +347,11 @@ void OsuMenuLayer::update(float delta)
 	if (playing)
 		songPos += delta;
 		
-	bg->setPositionX(lerpF(bg->getPosition().x, (bgStartPos.x - getMousePositionC().x / size.width), 5.5f * delta));
-	bg->setPositionY(lerpF(bg->getPosition().y, (bgStartPos.y + getMousePositionC().y / size.height), 5.5f * delta));
+	bg->setPositionX(lerpF(bg->getPosition().x, (bgStartPos.x -  Mouse::getMousePositionC(view).x / size.width), 5.5f * delta));
+	bg->setPositionY(lerpF(bg->getPosition().y, (bgStartPos.y +  Mouse::getMousePositionC(view).y / size.height), 5.5f * delta));
 
-	logo->setPositionX(lerpF(logo->getPosition().x, (logoStartPos.x - getMousePositionC().x / size.width), 7.f * delta));
-	logo->setPositionY(lerpF(logo->getPosition().y, (logoStartPos.y + getMousePositionC().y / size.height), 7.f * delta));
-
+	logo->setPositionX(lerpF(logo->getPosition().x, (logoPos.x -  Mouse::getMousePositionC(view).x / size.width), 15.f * delta));
+	logo->setPositionY(lerpF(logo->getPosition().y, (logoPos.y +  Mouse::getMousePositionC(view).y / size.height), 15.f * delta));
 	logoT->setPosition(logoT->getPosition().lerp(logo->getPosition(), 6.f * delta));
 
 	logo->setScale(lerpF(logo->getScale(), logoScale, 8.f * delta));
@@ -360,14 +365,22 @@ void OsuMenuLayer::update(float delta)
 	if (oldStep != curStep && curStep > 0)
 		stepHit();
 
-	if (oldMousePos.x == getMousePositionC().x && oldMousePos.y == getMousePositionC().y)
+	if (oldMousePos.x ==  Mouse::getMousePositionC(view).x && oldMousePos.y ==  Mouse::getMousePositionC(view).y)
 		timer2 += delta;
 	else
 		timer2 = 0;
 
 	if (timer2 > 6.f)
 	{
-		alphaA = (int)clampf(lerpF((float)alphaA, 0.0f, 0.001f * delta), 0, 255);
+		if(logoPos.x == logoStartPos.x && logoPos.y == logoStartPos.y)
+			alphaA = (int)clampf(lerpF((float)alphaA, 0.0f, 0.001f * delta), 0, 255);
+		else
+		{
+			timer2 = 0.f;
+			logoPos = logoStartPos;
+			inMainMenu = false;
+			inPlayMenu = false;
+		}
 	}
 	else
 		alphaA = (int)clampf(lerpF((float)alphaA, 255.0f, 7.0f * delta), 0, 255);
@@ -375,8 +388,7 @@ void OsuMenuLayer::update(float delta)
 	shittyLines->setOpacity((int)((float)alphaA / 2.0f));
 	ppy->setOpacity(alphaA);
 	tr1ngle->setOpacity(alphaA);
-
-	if (ppy->boundingBox().containsPoint(getMousePositionInS()))
+	if (ppy->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
 	{
 		ccColor3B targetColor = { 255, 255, 100 };
 		ppy->setColor(lerpColor3(ppy->getColor(), targetColor, 6.0f * delta));
@@ -392,7 +404,7 @@ void OsuMenuLayer::update(float delta)
 		ppy->setScale(lerpF(ppy->getScale(), 1.1f, 8.0f * delta));
 	}
 
-	if (tr1ngle->boundingBox().containsPoint(getMousePositionInS()))
+	if (tr1ngle->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
 	{
 		ccColor3B targetColor = { 255, 255, 100 };
 		tr1ngle->setColor(lerpColor3(tr1ngle->getColor(), targetColor, 7.0f * delta));
@@ -408,7 +420,7 @@ void OsuMenuLayer::update(float delta)
 	}
 	if (!closingGame) 
 	{
-		if (CCRect(-0.4f, -0.71111f, 0.8f, 1.42222f).containsPoint(getMousePositionCF())) // touch logo
+		if (AABBCircleL(logoPos, logo->getContentSize().width / 2.f * 0.9f,  Mouse::getMousePositionInS(view, size), {1, 1})) // touch logo
 		{
 			logoScale = 1.025f;
 			if (touchAAA && !prevTouchAAA) 
@@ -416,11 +428,18 @@ void OsuMenuLayer::update(float delta)
 				if (!inMainMenu && !inPlayMenu) 
 				{
 					inMainMenu = true;
+					touchAAA = true;
+					prevTouchAAA = true;
 				}
 				else
 				{
-					if (inMainMenu && !inPlayMenu)
+					if (inMainMenu && !inPlayMenu) 
+					{
 						inPlayMenu = true;
+						touchAAA = true;
+						prevTouchAAA = true;
+					}
+						
 					else
 						if (inMainMenu && inPlayMenu) 
 						{
@@ -438,14 +457,84 @@ void OsuMenuLayer::update(float delta)
 		else
 			logoScale = 0.95f;
 	}	
-	
+	if (inMainMenu)
+		logoPos = logoStartPos - CCPoint{ logo->getContentSize().width / 3.f, 0 };
+	else
+		logoPos = logoStartPos;
 	if (inMainMenu && !inPlayMenu) 
 	{
-		playBtnN->setOpacity((int)clampf(lerpF((float)playBtnN->getOpacity(), 255.0f, 8.f * delta), 0, 255));
-		iconsBtnN->setOpacity((int)clampf(lerpF((float)iconsBtnN->getOpacity(), 255.0f, 8.f * delta), 0, 255));
-		creditsBtnN->setOpacity((int)clampf(lerpF((float)creditsBtnN->getOpacity(), 255.0f, 8.f * delta), 0, 255));
-		optionsBtnN->setOpacity((int)clampf(lerpF((float)optionsBtnN->getOpacity(), 255.0f, 8.f * delta), 0, 255));
-		exitBtnN->setOpacity((int)clampf(lerpF((float)exitBtnN->getOpacity(), 255.0f, 8.f * delta), 0, 255));
+		bool touchingLogoL = AABBCircleL(logoPos, logo->getContentSize().width / 2.f * 0.9f,  Mouse::getMousePositionInS(view, size), { 1, 1 });
+		
+		if(!playBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
+			playBtnN->setOpacity((int)clampf(lerpF((float)playBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && playBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size))) 
+		{
+			playBtnN->setOpacity((int)clampf(lerpF((float)playBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				inPlayMenu = true;
+			}
+		}
+			
+		
+		if (!iconsBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
+			iconsBtnN->setOpacity((int)clampf(lerpF((float)iconsBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && iconsBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size))) 
+		{
+			iconsBtnN->setOpacity((int)clampf(lerpF((float)iconsBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				auto scene = CCScene::create();
+				auto laye = gd::GJGarageLayer::create();
+				scene->addChild(laye);
+				CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
+			}
+		}
+			
+		
+		if (!creditsBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
+			creditsBtnN->setOpacity((int)clampf(lerpF((float)creditsBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && creditsBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size))) 
+		{
+			creditsBtnN->setOpacity((int)clampf(lerpF((float)creditsBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				auto scene = CCScene::create();
+				auto laye = CreditsLayer::create();
+				scene->addChild(laye);
+				CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
+			}
+		}
+			
+		
+		if (!optionsBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
+			optionsBtnN->setOpacity((int)clampf(lerpF((float)optionsBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && optionsBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size))) 
+		{
+			optionsBtnN->setOpacity((int)clampf(lerpF((float)optionsBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				
+			}
+		}
+			
+		
+		if (!exitBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
+			exitBtnN->setOpacity((int)clampf(lerpF((float)exitBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && exitBtnN->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size))) 
+		{
+			exitBtnN->setOpacity((int)clampf(lerpF((float)exitBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				syaNextTime();
+			}
+		}
+			
 	}
 	else
 	{
@@ -455,14 +544,14 @@ void OsuMenuLayer::update(float delta)
 		optionsBtnN->setOpacity((int)clampf(lerpF((float)optionsBtnN->getOpacity(), 0.0f, 8.f * delta), 0, 255));
 		exitBtnN->setOpacity((int)clampf(lerpF((float)exitBtnN->getOpacity(), 0.0f, 8.f * delta), 0, 255));
 
-		playBtnO->setOpacity((int)clampf(lerpF((float)playBtnO->getOpacity(), 0.0f, 8.f * delta), 0, 255));
-		iconsBtnO->setOpacity((int)clampf(lerpF((float)iconsBtnO->getOpacity(), 0.0f, 8.f * delta), 0, 255));
-		creditsBtnO->setOpacity((int)clampf(lerpF((float)creditsBtnO->getOpacity(), 0.0f, 8.f * delta), 0, 255));
-		optionsBtnO->setOpacity((int)clampf(lerpF((float)optionsBtnO->getOpacity(), 0.0f, 8.f * delta), 0, 255));
-		exitBtnO->setOpacity((int)clampf(lerpF((float)exitBtnO->getOpacity(), 0.0f, 8.f * delta), 0, 255));
+		playBtnO->setOpacity(playBtnN->getOpacity());
+		iconsBtnO->setOpacity(iconsBtnN->getOpacity());
+		creditsBtnO->setOpacity(creditsBtnN->getOpacity());
+		optionsBtnO->setOpacity(optionsBtnN->getOpacity());
+		exitBtnO->setOpacity(exitBtnN->getOpacity());
 	}
 
-	oldMousePos = getMousePositionC();
+	oldMousePos =  Mouse::getMousePositionC(view);
 
 	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("leftValue"), flash_leftValue);
 	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("rightValue"), flash_rightValue);
@@ -503,6 +592,7 @@ void OsuMenuLayer::update(float delta)
 }
 OsuMenuLayer* OsuMenuLayer::create() 
 {
+	CCTexture2D::setDefaultAlphaPixelFormat(kTexture2DPixelFormat_RGBA8888);
 	auto a = new OsuMenuLayer();
 	if (a && a->init()) 
 	{

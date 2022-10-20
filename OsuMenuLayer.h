@@ -17,6 +17,9 @@ public:
 	void syaNextTime();
 	static OsuMenuLayer* _fastcall create();
 
+	CCSize size;
+	CCEGLView* view;
+
 	bool playing = false;
 
 	CCSprite* bg;

@@ -146,11 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CreditsLayer.cpp" />
     <ClCompile Include="libs\gd.h\test\template.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="OsuMenuLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CreditsLayer.h" />
     <ClInclude Include="libs\gd.h\achievement_nodes\AchievementBar.h" />
     <ClInclude Include="libs\gd.h\achievement_nodes\AchievementNotifier.h" />
     <ClInclude Include="libs\gd.h\actions\CCCircleWave.h" />
@@ -266,6 +268,7 @@
     <ClInclude Include="libs\gd.h\text_input_nodes\CCTextInputNode.h" />
     <ClInclude Include="libs\gd.h\trigger_popups\SetupPickupTriggerPopup.h" />
     <ClInclude Include="libs\MinHook\MinHook.h" />
+    <ClInclude Include="Mouse.h" />
     <ClInclude Include="OsuMenuLayer.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
