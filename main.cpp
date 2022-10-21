@@ -3,9 +3,7 @@
 #include "OsuMenuLayer.h"
 #include "Mouse.h"
 
-
 bool OsuMenuLayer::openedBefore = false;
-
 
 DWORD WINAPI Main_Thread(void* hModule)
 {

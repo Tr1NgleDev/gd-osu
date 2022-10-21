@@ -61,7 +61,7 @@ bool CreditsLayer::init()
 }
 void CreditsLayer::update(float delta) 
 {
-	touchAAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0);
+	touchAAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0) && GetFocus() != 0;
 
 	bg->setPositionX(lerpF(bg->getPosition().x, (bgStartPos.x - Mouse::getMousePositionC(view).x / size.width / 4.f), 5.5f * delta));
 	bg->setPositionY(lerpF(bg->getPosition().y, (bgStartPos.y + Mouse::getMousePositionC(view).y / size.height / 4.f), 5.5f * delta));

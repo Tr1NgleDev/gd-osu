@@ -6,7 +6,6 @@
 	also code is so shitty but i dont really care because it works.
 	L
 */
-
 #include "OsuMenuLayer.h"
 #include "CreditsLayer.h"
 #include "Mouse.h"
@@ -401,8 +400,7 @@ void OsuMenuLayer::update(float delta)
 		onlineBtnO->setOpacity(255 - onlineBtnN->getOpacity());
 		backBtnO->setOpacity(255 - backBtnN->getOpacity());
 	}
-
-	touchAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0);
+	touchAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0) && GetFocus() != 0;
 	if (blackBG->getOpacity() >= 200)
 		touchAAA = false;
 	if (CCDirector::sharedDirector()->getRunningScene()->getChildrenCount() > 1)
