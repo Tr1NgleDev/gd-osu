@@ -7,7 +7,7 @@
 
 using namespace cocos2d;
 
-#define DEBUG
+//#define DEBUG
 
 #define lerpF(a, b, ratio) (a * (1.f - ratio) + b * ratio)
 #define lerpColor3(start, target, ratio) { (unsigned char)(int)clampf(lerpF((float)start.r, (float)target.r, ratio), 0, 255), (unsigned char)(int)clampf(lerpF((float)start.g, (float)target.g, ratio), 0, 255), (unsigned char)(int)clampf(lerpF((float)start.b, (float)target.b, ratio), 0.0f, 255.0f) }
