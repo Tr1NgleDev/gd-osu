@@ -143,7 +143,7 @@ void OsuMenuLayer::createPlayMenuButtons()
 	onlineBtnN->setPosition({ size.width / 2.75f - 7.5f, size.height / 2 });
 	backBtnN->setPosition({ size.width / 2.75f - 15, size.height / 2 - iconsBtnN->getContentSize().height });
 }
-FMOD::ChannelControl* deC;
+
 bool OsuMenuLayer::init() 
 {
 	auto shDir = CCDirector::sharedDirector();
@@ -155,7 +155,7 @@ bool OsuMenuLayer::init()
 	if (!gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying() && openedBefore)
 	{
 		soundManager->stopBackgroundMusic();
-		deC = gd::FMODAudioEngine::sharedEngine()->playBackgroundMusic("menuLoop.mp3", false, true);
+		soundManager->playBackgroundMusic(true, "menuLoop.mp3");
 		playing = true;
 	}
 	if(!openedBefore)
@@ -374,8 +374,6 @@ void OsuMenuLayer::stepUpdate()
 	curStep = (int)floor(songPos / (crotchet / 4.f));
 }
 bool playingSeeyaNextTime;
-unsigned int timee;
-
 void OsuMenuLayer::update(float delta) 
 {
 	if (gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying()) 
@@ -425,8 +423,8 @@ void OsuMenuLayer::update(float delta)
 	if(!gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying())
 	if (timer > 0.7f) 
 	{
-		//gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "menuLoop.mp3");
-		deC = gd::FMODAudioEngine::sharedEngine()->playBackgroundMusic("menuLoop.mp3", false, true);
+		gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "menuLoop.mp3");
+		
 		playing = true;
 	}
 
