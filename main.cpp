@@ -18,7 +18,7 @@ DWORD WINAPI Main_Thread(void* hModule)
 	FILE* fp;
 	freopen_s(&fp, "CONOUT$", "w", stdout);
 #endif
-
+	CCTexture2D::setDefaultAlphaPixelFormat(kTexture2DPixelFormat_RGBA8888);
 	MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x190550), OsuMenuLayer::create, NULL); // MenuLayer
 	MH_EnableHook(MH_ALL_HOOKS);
 

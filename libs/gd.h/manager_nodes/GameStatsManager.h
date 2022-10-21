@@ -38,5 +38,10 @@ namespace gd {
 				base + 0xf1e50
 				)();
 		}
+		int getStat(const char* key) {
+			return reinterpret_cast<int(__thiscall*)(GameStatsManager*, const char*)>(
+				base + 0xF3580
+				)(this, key);
+		}
 	};
 }

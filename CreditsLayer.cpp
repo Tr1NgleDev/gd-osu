@@ -2,6 +2,7 @@
 #include "Mouse.h"
 #include <Windows.h>
 
+
 bool touchAAAA;
 bool prevTouchAAAA;
 
@@ -12,6 +13,7 @@ void CreditsLayer::keyBackClicked()
 
 bool CreditsLayer::init()
 {
+	
 	auto shDir = CCDirector::sharedDirector();
 	
 	size = shDir->getWinSize();

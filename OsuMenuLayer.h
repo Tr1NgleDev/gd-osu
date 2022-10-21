@@ -8,6 +8,7 @@ protected:
 	virtual void keyBackClicked();
 public:
 	void createMainMenuButtons();
+	void createPlayMenuButtons();
 	static bool openedBefore;
 	void update(float) override;
 	void beatUpdate();
@@ -56,6 +57,11 @@ public:
 	bool inMainMenu;
 	bool inPlayMenu;
 
+	CCSprite* rewardsBtn;
+
+	CCSprite* accBtn;
+	CCLabelBMFont* username;
+	CCLabelBMFont* info;
 
 	// main menu buttons
 	CCSprite* playBtnN;
@@ -72,5 +78,16 @@ public:
 	
 	CCSprite* exitBtnN;
 	CCSprite* exitBtnO;
+
+	// play menu buttons
+	CCSprite* levelsBtnN;
+	CCSprite* levelsBtnO;
+
+	CCSprite* onlineBtnN;
+	CCSprite* onlineBtnO;
+
+	CCSprite* backBtnN;
+	CCSprite* backBtnO;
+	
 };
 

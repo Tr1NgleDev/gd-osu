@@ -153,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CreditsLayer.h" />
+    <ClInclude Include="RewardsPage.h" />
     <ClInclude Include="libs\gd.h\achievement_nodes\AchievementBar.h" />
     <ClInclude Include="libs\gd.h\achievement_nodes\AchievementNotifier.h" />
     <ClInclude Include="libs\gd.h\actions\CCCircleWave.h" />

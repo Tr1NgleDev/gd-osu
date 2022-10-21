@@ -10,6 +10,7 @@
 #include "OsuMenuLayer.h"
 #include "CreditsLayer.h"
 #include "Mouse.h"
+#include "RewardsPage.h"
 
 #define circlesBPM 184.0f
 #define crotchet 60.f / circlesBPM
@@ -19,8 +20,6 @@ int curStep;
 int curBeat;
 
 CCPoint oldMousePos;
-
-gd::OptionsLayer* optionsLayer;
 
 bool touchAAA;
 bool prevTouchAAA;
@@ -51,7 +50,7 @@ void OsuMenuLayer::syaNextTime()
 }
 void OsuMenuLayer::keyBackClicked() 
 {
-	if ((optionsLayer == NULL) || (optionsLayer != NULL && !CCDirector::sharedDirector()->getRunningScene()->getChildren()->containsObject(optionsLayer)))
+	if (CCDirector::sharedDirector()->getRunningScene()->getChildrenCount() == 1)
 		syaNextTime();
 }
 void OsuMenuLayer::createMainMenuButtons() 
@@ -109,6 +108,42 @@ void OsuMenuLayer::createMainMenuButtons()
 	optionsBtnN->setPosition({ size.width / 2.75f - 15, size.height / 2 - optionsBtnN->getContentSize().height });
 	exitBtnN->setPosition({ size.width / 2.75f - 30, size.height / 2 - exitBtnN->getContentSize().height * 2.f });
 }
+void OsuMenuLayer::createPlayMenuButtons()
+{
+	levelsBtnN = CCSprite::create("osuMenu/buttons/h/menu-button-levels.png");
+	levelsBtnO = CCSprite::create("osuMenu/buttons/h/menu-button-levels-over.png");
+	levelsBtnN->setAnchorPoint({ 0.f, 0.5f });
+	levelsBtnO->setAnchorPoint({ 0.f, 0.5f });
+	addChild(levelsBtnN);
+	addChild(levelsBtnO);
+
+	onlineBtnN = CCSprite::create("osuMenu/buttons/h/menu-button-online.png");
+	onlineBtnO = CCSprite::create("osuMenu/buttons/h/menu-button-online-over.png");
+	onlineBtnN->setAnchorPoint({ 0.f, 0.5f });
+	onlineBtnO->setAnchorPoint({ 0.f, 0.5f });
+	addChild(onlineBtnN);
+	addChild(onlineBtnO);
+
+	backBtnN = CCSprite::create("osuMenu/buttons/h/menu-button-back.png");
+	backBtnO = CCSprite::create("osuMenu/buttons/h/menu-button-back-over.png");
+	backBtnN->setAnchorPoint({ 0.f, 0.5f });
+	backBtnO->setAnchorPoint({ 0.f, 0.5f });
+	addChild(backBtnN);
+	addChild(backBtnO);
+
+	levelsBtnN->setOpacity(0);
+	onlineBtnN->setOpacity(0);
+	backBtnN->setOpacity(0);
+
+	levelsBtnO->setOpacity(0);
+	onlineBtnO->setOpacity(0);
+	backBtnO->setOpacity(0);
+
+	levelsBtnN->setPosition({ size.width / 2.75f - 15, size.height / 2 + playBtnN->getContentSize().height });
+	onlineBtnN->setPosition({ size.width / 2.75f - 7.5f, size.height / 2 });
+	backBtnN->setPosition({ size.width / 2.75f - 15, size.height / 2 - iconsBtnN->getContentSize().height });
+}
+FMOD::ChannelControl* deC;
 bool OsuMenuLayer::init() 
 {
 	auto shDir = CCDirector::sharedDirector();
@@ -116,12 +151,11 @@ bool OsuMenuLayer::init()
 	view = shDir->getOpenGLView();
 
 	auto soundManager = gd::GameSoundManager::sharedState();
-
 	
 	if (!gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying() && openedBefore)
 	{
 		soundManager->stopBackgroundMusic();
-		soundManager->playBackgroundMusic(true, "menuLoop.mp3");
+		deC = gd::FMODAudioEngine::sharedEngine()->playBackgroundMusic("menuLoop.mp3", false, true);
 		playing = true;
 	}
 	if(!openedBefore)
@@ -170,14 +204,14 @@ bool OsuMenuLayer::init()
 
 
 	ppy = CCSprite::create("osuMenu/ppy.png");
-	ppy->setZOrder(100);
+	ppy->setZOrder(202);
 	ppy->setAnchorPoint({ 0, 0 });
 	ppy->setScale(1.1f);
 
 	addChild(ppy);
 
 	tr1ngle = CCSprite::create("osuMenu/tr1ngle.png");
-	tr1ngle->setZOrder(101);
+	tr1ngle->setZOrder(202);
 	tr1ngle->setAnchorPoint({ 1, 0 });
 	tr1ngle->setScale(1.1f);
 	tr1ngle->setPositionX(size.width);
@@ -211,7 +245,7 @@ bool OsuMenuLayer::init()
 	auto bgSz = blackBG->getContentSize();
 	blackBG->setScaleX(size.width / bgSz.width);
 	blackBG->setScaleY(size.height / bgSz.height);
-	blackBG->setZOrder(50);
+	blackBG->setZOrder(200);
 	blackBG->setAnchorPoint({ 0, 0 });
 	blackBG->setColor({ 0, 0, 0 });
 	addChild(blackBG);
@@ -223,7 +257,7 @@ bool OsuMenuLayer::init()
 	{	
 		soundManager->playSound("osuMenu/welcome.ogg");
 		CCSprite* welcome = CCSprite::create("osuMenu/welcome_text.png");
-		welcome->setZOrder(51);
+		welcome->setZOrder(201);
 		welcome->setOpacity(0);
 		welcome->setAnchorPoint({ 0, 0 });
 		welcome->setPosition(scrCenter(size, welcome->getContentSize()));
@@ -232,7 +266,7 @@ bool OsuMenuLayer::init()
 		addChild(welcome);
 
 		welcome->runAction(CCSequence::create(
-			CCDelayTime::create(.0),
+			CCDelayTime::create(.0f),
 			CCSpawn::create(
 				CCEaseExponentialOut::create(
 					CCScaleTo::create(2, 1)
@@ -245,7 +279,7 @@ bool OsuMenuLayer::init()
 			nullptr
 		));
 		blackBG->runAction(CCSequence::create(
-			CCDelayTime::create(2.),
+			CCDelayTime::create(2.f),
 			CCSpawn::create(
 				CCEaseInOut::create(
 					CCFadeTo::create(.5, 0), 4.
@@ -255,7 +289,7 @@ bool OsuMenuLayer::init()
 			nullptr
 		));
 		welcome->runAction(CCSequence::create(
-			CCDelayTime::create(2.1),
+			CCDelayTime::create(2.1f),
 			CCSpawn::create(
 				CCEaseInOut::create(
 					CCFadeTo::create(.5, 0), 4.
@@ -265,9 +299,38 @@ bool OsuMenuLayer::init()
 			nullptr
 		));
 	}
+	
+	rewardsBtn = CCSprite::create("osuMenu/buttons/rewards.png");
+	rewardsBtn->setZOrder(104);
+	rewardsBtn->setPosition({ 960.5f / 1920.f * size.width, 1062.f / 1080.f * size.height });
+	addChild(rewardsBtn);
+
+	username = CCLabelBMFont::create(gd::GJAccountManager::sharedState()->getUsername(), "chatFont.fnt", 2, CCTextAlignment::kCCTextAlignmentLeft);
+	username->setPosition({ 4, size.height - 4 });
+	username->setAnchorPoint({ 0, 1 });
+	username->setScale(0.45f);
+	username->setZOrder(104);
+	addChild(username);
+
+	info = CCLabelBMFont::create(CCString::createWithFormat("Stars:%i*\nCoins:%i", gd::GameStatsManager::sharedState()->getStat("6"), gd::GameStatsManager::sharedState()->getStat("8"))->getCString(), "chatFont.fnt", 2, CCTextAlignment::kCCTextAlignmentLeft);
+	info->setPosition({ 4, size.height - 4 - username->getContentSize().height / 2.f });
+	info->setAnchorPoint({ 0, 1 });
+	info->setScale(0.375f);
+	info->setZOrder(104);
+	addChild(info);
+
+	accBtn = CCSprite::create("square.png");
+	accBtn->setColor({ 0, 0, 0 });
+	accBtn->setAnchorPoint({ 0, 1 });
+	accBtn->setOpacity(0);
+	accBtn->setPosition({ 1, size.height - 1 });
+	accBtn->setScaleX(username->getContentSize().width / accBtn->getContentSize().width);
+	accBtn->setScaleY(71.f / 720.f * size.height / accBtn->getContentSize().height);
+	accBtn->setZOrder(102);
+	addChild(accBtn);
 
 	createMainMenuButtons();
-	//createPlayMenuButtons();
+	createPlayMenuButtons();
 	
 	setKeypadEnabled(true);
 	setTouchEnabled(true);
@@ -311,14 +374,27 @@ void OsuMenuLayer::stepUpdate()
 	curStep = (int)floor(songPos / (crotchet / 4.f));
 }
 bool playingSeeyaNextTime;
+unsigned int timee;
 
 void OsuMenuLayer::update(float delta) 
 {
+	if (gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying()) 
+	{
+		debugCOUT((reinterpret_cast<unsigned int(__thiscall*)(gd::FMODAudioEngine*)>(
+			gd::base + 0x23FF0
+			)(gd::FMODAudioEngine::sharedEngine())));
+		
+	}
+		
 	playBtnO->setPosition(playBtnN->getPosition());
 	iconsBtnO->setPosition(iconsBtnN->getPosition());
 	creditsBtnO->setPosition(creditsBtnN->getPosition());
 	optionsBtnO->setPosition(optionsBtnN->getPosition());
 	exitBtnO->setPosition(exitBtnN->getPosition());
+
+	levelsBtnO->setPosition(levelsBtnN->getPosition());
+	onlineBtnO->setPosition(onlineBtnN->getPosition());
+	backBtnO->setPosition(backBtnN->getPosition());
 
 	if (inMainMenu && !inPlayMenu) 
 	{
@@ -329,10 +405,17 @@ void OsuMenuLayer::update(float delta)
 		exitBtnO->setOpacity(255 - exitBtnN->getOpacity());
 	}
 
+	if (inMainMenu && inPlayMenu)
+	{
+		levelsBtnO->setOpacity(255 - levelsBtnN->getOpacity());
+		onlineBtnO->setOpacity(255 - onlineBtnN->getOpacity());
+		backBtnO->setOpacity(255 - backBtnN->getOpacity());
+	}
+
 	touchAAA = ((GetKeyState(VK_LBUTTON) & 0x8000) != 0);
 	if (blackBG->getOpacity() >= 200)
 		touchAAA = false;
-	if (optionsLayer != NULL && CCDirector::sharedDirector()->getRunningScene()->getChildren()->containsObject(optionsLayer))
+	if (CCDirector::sharedDirector()->getRunningScene()->getChildrenCount() > 1)
 		touchAAA = false;
 	flashGradient->use();
 	if (!playing)
@@ -342,8 +425,8 @@ void OsuMenuLayer::update(float delta)
 	if(!gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying())
 	if (timer > 0.7f) 
 	{
-		gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "menuLoop.mp3");
-		
+		//gd::GameSoundManager::sharedState()->playBackgroundMusic(true, "menuLoop.mp3");
+		deC = gd::FMODAudioEngine::sharedEngine()->playBackgroundMusic("menuLoop.mp3", false, true);
 		playing = true;
 	}
 
@@ -430,6 +513,8 @@ void OsuMenuLayer::update(float delta)
 			{
 				if (!inMainMenu && !inPlayMenu) 
 				{
+					gd::GameSoundManager::playSound("osuMenu/menuhit.ogg");
+
 					inMainMenu = true;
 					touchAAA = true;
 					prevTouchAAA = true;
@@ -438,6 +523,8 @@ void OsuMenuLayer::update(float delta)
 				{
 					if (inMainMenu && !inPlayMenu) 
 					{
+						gd::GameSoundManager::playSound("osuMenu/menu-play-click.ogg");
+
 						inPlayMenu = true;
 						touchAAA = true;
 						prevTouchAAA = true;
@@ -446,6 +533,8 @@ void OsuMenuLayer::update(float delta)
 					else
 						if (inMainMenu && inPlayMenu) 
 						{
+							gd::GameSoundManager::playSound("osuMenu/menu-freeplay-click.ogg");
+
 							debugCOUT("open robtop levels");
 							auto scene = CCScene::create();
 							auto laye = gd::LevelSelectLayer::create(0);
@@ -477,6 +566,10 @@ void OsuMenuLayer::update(float delta)
 			{
 				// do action L
 				inPlayMenu = true;
+				touchAAA = true;
+				prevTouchAAA = true;
+				gd::GameSoundManager::playSound("osuMenu/menu-play-click.ogg");
+
 			}
 		}
 			
@@ -493,6 +586,8 @@ void OsuMenuLayer::update(float delta)
 				auto laye = gd::GJGarageLayer::create();
 				scene->addChild(laye);
 				CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
+				gd::GameSoundManager::playSound("osuMenu/menuhit.ogg");
+
 			}
 		}
 			
@@ -509,6 +604,7 @@ void OsuMenuLayer::update(float delta)
 				auto laye = CreditsLayer::create();
 				scene->addChild(laye);
 				CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
+				gd::GameSoundManager::playSound("osuMenu/menuhit.ogg");
 			}
 		}
 			
@@ -521,7 +617,8 @@ void OsuMenuLayer::update(float delta)
 			if (touchAAA && !prevTouchAAA) // pressed
 			{
 				// do action L
-				optionsLayer = gd::OptionsLayer::addToCurrentScene();
+				gd::OptionsLayer::addToCurrentScene();
+				gd::GameSoundManager::playSound("osuMenu/menuhit.ogg");
 			}
 		}
 			
@@ -535,6 +632,7 @@ void OsuMenuLayer::update(float delta)
 			{
 				// do action L
 				syaNextTime();
+				gd::GameSoundManager::playSound("osuMenu/menuback.ogg");
 			}
 		}
 			
@@ -553,7 +651,95 @@ void OsuMenuLayer::update(float delta)
 		optionsBtnO->setOpacity(optionsBtnN->getOpacity());
 		exitBtnO->setOpacity(exitBtnN->getOpacity());
 	}
+	if (inMainMenu && inPlayMenu) 
+	{
+		bool touchingLogoL = AABBCircleL(logoPos, logo->getContentSize().width / 2.f * 0.9f, Mouse::getMousePositionInS(view, size), { 1, 1 });
 
+		if (!levelsBtnN->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+			levelsBtnN->setOpacity((int)clampf(lerpF((float)levelsBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && levelsBtnN->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+		{
+			levelsBtnN->setOpacity((int)clampf(lerpF((float)levelsBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				debugCOUT("open robtop levels");
+				auto scene = CCScene::create();
+				auto laye = gd::LevelSelectLayer::create(0);
+				scene->addChild(laye);
+				CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
+				gd::GameSoundManager::playSound("osuMenu/menu-freeplay-click.ogg");
+			}
+		}
+
+		if (!onlineBtnN->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+			onlineBtnN->setOpacity((int)clampf(lerpF((float)onlineBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && onlineBtnN->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+		{
+			onlineBtnN->setOpacity((int)clampf(lerpF((float)onlineBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				auto scene = CCScene::create();
+				auto laye = gd::CreatorLayer::create();
+				scene->addChild(laye);
+				CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, scene));
+				gd::GameSoundManager::playSound("osuMenu/menu-multiplayer-click.ogg");
+			}
+		}
+
+		if (!backBtnN->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+			backBtnN->setOpacity((int)clampf(lerpF((float)backBtnN->getOpacity(), 255.0f, 10.f * delta), 0, 255));
+		else if (!touchingLogoL && backBtnN->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+		{
+			backBtnN->setOpacity((int)clampf(lerpF((float)backBtnN->getOpacity(), 0.0f, 15.f * delta), 0, 255));
+			if (touchAAA && !prevTouchAAA) // pressed
+			{
+				// do action L
+				inPlayMenu = false;
+				touchAAA = true;
+				prevTouchAAA = true;
+				gd::GameSoundManager::playSound("osuMenu/menuback.ogg");
+			}
+		}
+	}
+	else 
+	{
+		levelsBtnN->setOpacity((int)clampf(lerpF((float)levelsBtnN->getOpacity(), 0.0f, 8.f * delta), 0, 255));
+		onlineBtnN->setOpacity((int)clampf(lerpF((float)onlineBtnN->getOpacity(), 0.0f, 8.f * delta), 0, 255));
+		backBtnN->setOpacity((int)clampf(lerpF((float)backBtnN->getOpacity(), 0.0f, 8.f * delta), 0, 255));
+
+		levelsBtnO->setOpacity(levelsBtnN->getOpacity());
+		onlineBtnO->setOpacity(onlineBtnN->getOpacity());
+		backBtnO->setOpacity(backBtnN->getOpacity());
+	}
+
+	if (rewardsBtn->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+	{
+		rewardsBtn->setScale(lerpF(rewardsBtn->getScale(), 1.025f, 6.f * delta));
+		if (touchAAA && !prevTouchAAA) // pressed
+		{
+			auto a = RewardsPage::create();
+			a->show();
+			gd::GameSoundManager::playSound("osuMenu/menuclick.ogg");
+
+		}
+	}
+	else 
+	{
+		rewardsBtn->setScale(lerpF(rewardsBtn->getScale(), 1.f, 3.f * delta));
+	}
+		
+	if (accBtn->boundingBox().containsPoint(Mouse::getMousePositionInS(view, size)))
+	{
+		if (touchAAA && !prevTouchAAA) // pressed
+		{
+			auto a = gd::ProfilePage::create(gd::GJAccountManager::sharedState()->m_nPlayerAccountID, true);
+			a->show();
+			gd::GameSoundManager::playSound("osuMenu/menuclick.ogg");
+
+		}
+	}
 	oldMousePos =  Mouse::getMousePositionC(view);
 
 	flashGradient->setUniformLocationWith1f(flashGradient->getUniformLocationForName("leftValue"), flash_leftValue);
@@ -588,7 +774,11 @@ void OsuMenuLayer::update(float delta)
 		
 
 		if (closeTimer > 3.1f) 
+		{
+			CCApplication::sharedApplication()->trySaveGame();
 			exit(0);
+		}
+			
 	}
 
 	prevTouchAAA = touchAAA;
