@@ -63,6 +63,13 @@ namespace gd {
 			reinterpret_cast<int(__stdcall*)(void*, bool*)>(addr)(this->m_pGlobalChannel, &ret);
 			return ret;
 		}
+		unsigned int getBGMusicPositionFMOD() 
+		{
+			const auto addr = GetProcAddress(GetModuleHandleA("fmod.dll"), "?getPosition@Channel@FMOD@@QAG?AW4FMOD_RESULT@@PAII@Z");
+			unsigned int ret;
+			reinterpret_cast<int(__stdcall*)(void*, unsigned int*, unsigned int)>(addr)(this->m_pGlobalChannel, &ret, FMOD_TIMEUNIT_MS);
+			return ret;
+		}
 		FMOD::ChannelControl* playBackgroundMusic(std::string const& path, bool idk0, bool idk1) {
 			return reinterpret_cast<FMOD::ChannelControl * (__thiscall*)(FMODAudioEngine*, bool, bool, std::string)>(
 				base + 0x23d80
@@ -71,11 +78,9 @@ namespace gd {
 		bool isBackgroundMusicPlaying(const std::string& path) {
 			return path == m_sFilePath && isBackgroundMusicPlaying();
 		}
-		int getBgMusicTimeMilli() {
-			//return reinterpret_cast<int(__thiscall*)(FMODAudioEngine*)>(
-			//	base + 0x23FFC
-			//	)(this); 
-			return 0;
+		float getBackgroundMusicTime() 
+		{
+			return (float)(getBGMusicPositionFMOD()) / 1000.f;
 		}
 	};
 }

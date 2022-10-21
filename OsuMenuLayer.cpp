@@ -346,12 +346,12 @@ void OsuMenuLayer::beatHit()
 {
 	logo->setScale(logoScale + 0.075f);
 
-	if (curBeat == 40 - 3)
+	if (curBeat == 40 - 4)
 	{
 		flash_leftValue = 0.5f;
 		flash_rightValue = 0.5f;
 	}
-	if (curBeat >= 44 - 3 && curBeat != 75 - 3 && curBeat != 76 - 3)
+	if (curBeat >= 44 - 4 && curBeat != 75 - 4 && curBeat != 76 - 4)
 	{
 		flashSkullEmoji = !flashSkullEmoji;
 		if (flashSkullEmoji)
@@ -375,15 +375,7 @@ void OsuMenuLayer::stepUpdate()
 }
 bool playingSeeyaNextTime;
 void OsuMenuLayer::update(float delta) 
-{
-	if (gd::FMODAudioEngine::sharedEngine()->isBackgroundMusicPlaying()) 
-	{
-		debugCOUT((reinterpret_cast<unsigned int(__thiscall*)(gd::FMODAudioEngine*)>(
-			gd::base + 0x23FF0
-			)(gd::FMODAudioEngine::sharedEngine())));
-		
-	}
-		
+{		
 	playBtnO->setPosition(playBtnN->getPosition());
 	iconsBtnO->setPosition(iconsBtnN->getPosition());
 	creditsBtnO->setPosition(creditsBtnN->getPosition());
@@ -428,8 +420,7 @@ void OsuMenuLayer::update(float delta)
 		playing = true;
 	}
 
-	if (playing)
-		songPos += delta;
+	songPos = gd::FMODAudioEngine::sharedEngine()->getBackgroundMusicTime();
 		
 	bg->setPositionX(lerpF(bg->getPosition().x, (bgStartPos.x -  Mouse::getMousePositionC(view).x / size.width), 5.5f * delta));
 	bg->setPositionY(lerpF(bg->getPosition().y, (bgStartPos.y +  Mouse::getMousePositionC(view).y / size.height), 5.5f * delta));
@@ -472,6 +463,9 @@ void OsuMenuLayer::update(float delta)
 	shittyLines->setOpacity((int)((float)alphaA / 2.0f));
 	ppy->setOpacity(alphaA);
 	tr1ngle->setOpacity(alphaA);
+	rewardsBtn->setOpacity(alphaA);
+	username->setOpacity(alphaA);
+	info->setOpacity(alphaA);
 	if (ppy->boundingBox().containsPoint( Mouse::getMousePositionInS(view, size)))
 	{
 		ccColor3B targetColor = { 255, 255, 100 };
