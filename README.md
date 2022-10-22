@@ -12,7 +12,7 @@ It makes GD main menu look like the [osu!](https://osu.ppy.sh/home "osu!") main 
  - **[ppy](https://github.com/peppy "ppy")** - [osu!](https://osu.ppy.sh/home "osu!") developer
  - **[iAndy_HD3](https://github.com/iAndyHD3 "iAndy_HD3")** - Small code help (a few lines of code for getting mouse pos L)
  - **[HJfod](https://github.com/HJfod "HJfod")** - [gd.h](https://github.com/HJfod/gd.h "gd.h") and [cocos-headers](https://github.com/HJfod/cocos-headers "cocos-headers")
- - **Decoder0007** - Using AMD video card (it has skill issues with shaders)
+ - **[Decoder0007](https://www.github.com/Decoder0007 "AMD user :trollskullirl:")** - Using AMD video card (it has skill issues with shaders)
 
 ------------
 
