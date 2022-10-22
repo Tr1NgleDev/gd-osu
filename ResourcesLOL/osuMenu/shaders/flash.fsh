@@ -29,7 +29,7 @@ void main()
     if(rightGradient > 1.0)
         rightGradient = 1.0;
 
-    gl_FragColor = (leftGradient * leftValue * A + rightGradient * rightValue * A);
+    gl_FragColor = vec4(leftGradient * leftValue * A + rightGradient * rightValue * A);
 
     //gl_FragColor = vec4(v_texCoord, 0.0, 1.0); // uv debug
 }
